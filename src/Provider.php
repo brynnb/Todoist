@@ -33,10 +33,12 @@ class Provider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token)
     {
-        $response = $this->getHttpClient()->get('https://todoist.com/API/v6/sync', [
-            'headers' => [
-                'Authorization' => 'Bearer '.$token,
-            ],
+        $response = $this->getHttpClient()->post('https://todoist.com/API/v6/sync', [
+            'form_params' => [
+                'token' => $token,
+                'seq_no' => '0',
+                'resource_types' => '["user"]'
+            ]
         ]);
 
         return json_decode($response->getBody(), true);
@@ -47,12 +49,13 @@ class Provider extends AbstractProvider implements ProviderInterface
      */
     protected function mapUserToObject(array $user)
     {
-        return (new User())->setRaw($user)->map([
-            'id'       => $user['id'],
-            'nickname' => $user['username'],
-            'name'     => $user['name'],
-            'email'    => $user['email'],
-            'avatar'   => $user['avatar'],
+        return (new User())->setRaw($user["User"])->map([
+            'id'       => $user["User"]['id'],
+            'nickname' => $user["User"]['full_name'],
+            'name'     => $user["User"]['full_name'],
+            'email'    => $user["User"]['email'],
+            'avatar'   => $user["User"]['image_id'],
+            'token'    => $user["User"]['token']
         ]);
     }
 
@@ -66,3 +69,4 @@ class Provider extends AbstractProvider implements ProviderInterface
         ]);
     }
 }
+
